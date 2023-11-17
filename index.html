@@ -1,0 +1,453 @@
+<head>
+    <link rel="stylesheet" href="public/css/Attributes.css"/>
+    <link rel="stylesheet" href="public/css/AttributesPhone.css"/>
+    <script type="text/javascript" src="public/js/Client.js"></script>
+    <script type="text/javascript" src="public/js/Interface.js"></script>
+    <script type="text/javascript" src="public/js/ApiInterface.js"></script>
+    <link rel="icon" type="image/svg+xml" href="public/img/favicon.png" />
+    <title>Rick and Morty</title>
+</head>
+<body>
+    <!-- DECLARATIVAS -->
+    <div
+    style=
+    "
+    display: none;
+    "
+    >
+        <div
+        export="view"
+        _view=""
+        _orientation="vertical_center"
+        onclick="/**/"
+        onchange="/**/"
+        style=
+        "
+        --h:auto
+        ;
+        --w:auto
+        ;
+        --h_phone:auto
+        ;
+        --w_phone:auto
+        ;
+        --box_shadow:2vw
+        ;
+        --box_shadow_color:black
+        ;
+        --border_radius:0px
+        ;
+        --border_radius_phone:0px
+        ;
+        --font_size:1vw
+        ;
+        --padding:0px
+        ;
+        --padding_phone:0px
+        ;
+        --margin:auto
+        ;
+        --margin_phone:auto
+        "
+        ></div>
+        <div
+        import="view"
+        export="character_prefab"
+        style=
+        "
+            width: 20vw;
+            height: 20vw;
+            background-color: wheat;
+            border-radius: 2vw;
+            margin: 1vw;
+            cursor: pointer;
+        "
+        _events="child_none"
+        onclick=
+        "
+            popup.style.removeProperty('display');
+            let id_element = this.querySelector(':scope > [name=id]');
+            let id = parseInt(id_element.innerHTML);
+
+            console.log(id_element);
+
+            (
+                async function()
+                {
+                    let char = JSON.parse
+                    (
+                        await async_cmd
+                        (
+                            'get'
+                            ,
+                            `https://rickandmortyapi.com/api/character/${id}`
+                        )
+                    )
+
+                    popup_content.value = JSON.stringify(char, undefined, 2);
+
+                    
+                }
+            )();
+        "      
+        >
+            <div
+            _import="view"
+            >
+                Character:
+            </div>
+            <div
+            name="id"
+            style="display: none;"
+            >
+                __id__
+            </div>
+            <div
+            import="view"
+            >
+                name: __name__
+            </div>
+            <div
+            import="view"
+            >
+                status: __status__
+            </div>
+            <div
+            import="view"
+            >
+                species: __species__
+            </div>
+            <div
+            import="view"
+            >
+                origin: __origin_name__
+            </div>
+            <div
+            import="view"
+            >
+                current location: __location_name__
+            </div>
+            <div
+            import="view"
+            style=
+            "
+                background: url('__image__') center center / contain no-repeat;
+                width: 5vw;
+                height: 5vw;
+            "
+            ></div>
+            <div>
+                Chapters:
+            </div>
+            <div
+            import="view"
+            >
+                __0__
+            </div>
+            <div
+            import="view"
+            >
+                __1__
+            </div>
+            <div
+            import="view"
+            >
+                __2__
+            </div>
+        </div>
+
+        <div
+        import="view"
+        export="episode_prefab"
+        >
+            <div
+            import="view"
+            style=
+            "
+            color: white;
+            "
+            >
+                __title__
+            </div>
+            <div
+            import="view"
+            >
+                __characters__
+            </div>
+        </div>
+        <select
+        export="select_episode"
+        multiple
+        _view=""
+        style=
+        "
+        appearance: auto;
+        align-items: flex-start;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        vertical-align: text-bottom;
+        white-space: nowrap;
+        border-radius: 2px;
+        --h:10vh;
+        background-color: white;
+        "
+        onstart=
+        "
+            Cmd
+            (
+                (data) =>
+                {
+                    let res = JSON.parse(data);
+                    __this__.innerHTML = '';
+                    for(let i = 1; i <= res.info.count; i++)
+                    {
+                        __this__.innerHTML += `<option value=${i}>Episode ${i}</option>`;
+                    }
+                }
+                ,
+                'get'
+                ,
+                dir_episode
+            )
+        "
+        onchange=
+        "
+            let selected = this.options.filter(n => n.selected);
+        "
+        ></select>
+        <span
+        import="view"
+        export="icon"
+        class="material-icons-outlined"
+        translate="no"
+        style=
+        "
+            font-family:Material Icons Outlined
+			;
+			--font_size:2vw
+			;
+			--font_size_phone:4vw
+			;
+			margin:0
+			;
+			color:gray
+        "
+        >
+            search
+        </span>
+        <div
+        import="view"
+        export="search_bar"
+        _orientation="horizontal_center"
+        style=
+        "
+            border: 1px solid gray
+            ;
+            border-radius: 1vw;
+            ;
+            padding: 0.5vw;
+            ;
+            background-color: white;
+        "
+        >
+            <script>
+                async function GroupByEpisodes (input)
+                {
+                    let body_chars = document.querySelector('[export=body]');
+                    body_chars.innerHTML = '';
+                    let episodes = 
+                    episode_selector.options.filter(n => n.selected)
+                    .map(n => n.value)
+                    ;
+
+                    let api = new ApiInterface
+                    ({
+                        episodes:episodes
+                        ,
+                        id_location:input.value
+                    })
+                    ;
+
+                    let g = await api.GroupByEpisodes();
+
+                    console.log(g);
+                    Object.keys(g).forEach
+                    (
+                        /**
+                         * @param { String }
+                         */
+                        function(name)
+                        {
+                            let char_prefab = document.querySelector('[export=character_prefab]');
+                            let epi_prefab = document.querySelector('[export=episode_prefab]');
+
+                            let epi_string = epi_prefab.outerHTML;
+                            let char_string = char_prefab.outerHTML;
+                            
+                            let index = 0;
+                            let childrens = "";
+
+                            let este = g[name];
+
+                            este.forEach
+                            (
+                                async function(n)
+                                {
+                                    let epi_names = await api.GetEpisodesNames(n);
+                                    console.log('epi_names:');
+                                    
+                                    console.log(epi_names);
+
+                                    childrens += 
+                                    char_string
+                                    .PROPS(n)
+                                    .PROPS
+                                    ({
+                                        origin_name:n.origin.name
+                                        ,
+                                        location_name:n.location.name
+                                    })
+                                    .PROPS_ARRAY
+                                    (
+                                        epi_names
+                                    )
+                                    index++;
+                                }
+                            )
+                            let id = setInterval
+                            (
+                                function(cancel)
+                                {
+                                    if(index < este.length)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        clearInterval(id);
+                                        console.log('Childrens Loaded!')
+                                        childrens = childrens.PROPS
+                                        ({
+                                            0:''
+                                            ,
+                                            1:''
+                                            ,
+                                            2:''
+                                        })
+                                        body_chars.innerHTML += epi_string.PROPS
+                                        ({
+                                            title: name.replace('_',' ').CAPITALICE()
+                                            ,
+                                            characters:childrens
+                                        })
+                                    }
+                                }
+                                ,
+                                1000
+                            )
+                        }
+                    )
+                }
+            </script>
+            <input 
+            import="view"
+            placeholder="location id or name "
+            onkeypress=
+            "
+            if(event.key == 'Enter')
+            {
+                GroupByEpisodes(this);
+            }
+            "
+            />
+            <span
+            import="icon"
+            onclick=
+            "
+                let input = this.parentElement.querySelector(':scope > input');
+                console.log(input);
+                GroupByEpisodes(input);
+            "
+            >
+                search
+            </span>
+        </div>
+    </div>
+    <!-- IMPLEMENTACIONES -->
+    <div
+    import="view"
+    id="popup"
+    style=
+    "
+    background-color: rgb(0, 0, 0, 0.5);
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    "
+    onclick=
+    "
+        this.style.setProperty('display', 'none');
+    "
+    >
+
+        <textarea
+        import="view"
+        id="popup_content"
+        style=
+        "
+        background-color: white;
+        width: 70%;
+        height: 70%;
+        text-align: start;
+        "
+        onclick=
+        "
+            event.stopPropagation()
+        "
+        >
+
+        </textarea>
+    </div>
+
+    <div
+    import="view"
+    style=
+    "
+        --h:5vh;
+        ;
+        background-color: white;
+    "
+    >
+        Press Control and Click in order to select a list of episodes:
+    </div>
+    <div 
+    import="view"
+    export="search_body"
+    _orientation=horizontal_center
+    style=
+    "
+        --h:15vh;
+    "
+    >
+        <select
+        id="episode_selector"
+        import="select_episode"
+        child_mode=add
+        ></select>
+        <div 
+        import="search_bar"
+        child_mode="add"
+        ></div>
+    </div>
+    <div 
+    import="view"
+    export="body"
+    style=
+    "
+        --h:auto;
+    "
+    >
+        body section
+    </div>
+</body>
