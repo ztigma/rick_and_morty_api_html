@@ -1,1 +1,1 @@
-Solo funciona en un cliente local, no funciona en el github pages, github bloquea la HttpsRequest. tener eso en cuenta.
+no funciona en el github pages, github bloquea la HttpsRequest. tener eso en cuenta.
